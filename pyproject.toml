@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "MCP server for OneNote desktop via COM automation"
 requires-python = ">=3.11"
 dependencies = [
-    "mcp[cli]>=1.0.0",
+    "mcp[cli]==1.9.4",  # НЕ поднимать: 1.29+ убрал FastMCP(description=...), 2.x переименовал FastMCP -> MCPServer
     "pydantic>=2.0.0",
     "pydantic-settings>=2.5.0",
     "Pillow>=10.0.0",
