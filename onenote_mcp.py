@@ -4,6 +4,7 @@ Provides 13 tools for navigating, reading, searching, and analyzing
 OneNote content including embedded images and diagrams.
 """
 
+import base64
 import json
 
 from mcp.server.fastmcp import FastMCP, Image
@@ -25,6 +26,15 @@ mcp = FastMCP(
     description="Access OneNote desktop notebooks via COM automation. "
     "Read, search, and analyze pages including embedded images.",
 )
+
+
+def _image(b64: str, media_type: str) -> Image:
+    """Wrap a base64 image for return to the client.
+
+    mcp 1.9.4 expects raw bytes and a short format name ("png"), and does the
+    base64 encoding itself — passing the encoded string through would double-encode it.
+    """
+    return Image(data=base64.b64decode(b64), format=media_type.split("/")[-1])
 
 
 # ── Navigation Tools ─────────────────────────────────────────────────
@@ -171,7 +181,7 @@ def onenote_get_page_images(
             result.append(f"[Image {img['index']}] Error: {img['error']}")
         else:
             result.append(f"[Image {img['index']}] (callback_id: {img['callback_id']})")
-            result.append(Image(data=img["base64"], media_type=img["media_type"]))
+            result.append(_image(img["base64"], img["media_type"]))
 
     return result
 
@@ -190,7 +200,7 @@ def onenote_get_image(
         max_size_kb: Maximum size in KB (default 512, image is resized if larger)
     """
     b64, media_type = get_image_base64(page_id, callback_id, max_size_kb)
-    return [Image(data=b64, media_type=media_type)]
+    return [_image(b64, media_type)]
 
 
 # ── Search Tools ─────────────────────────────────────────────────────
@@ -263,7 +273,7 @@ async def onenote_analyze_page_visuals(
                 result.append(f"Description: {img['description']}")
         else:
             result.append(f"[Image {img['index']}] Vision analysis: {img['description']}")
-            result.append(Image(data=img["base64"], media_type=img["media_type"]))
+            result.append(_image(img["base64"], img["media_type"]))
 
     return result
 
@@ -289,7 +299,7 @@ async def onenote_describe_image(
 
     return [
         f"Vision analysis: {description}",
-        Image(data=b64, media_type=media_type),
+        _image(b64, media_type),
     ]
 
 
